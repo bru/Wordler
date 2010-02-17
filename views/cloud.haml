@@ -1,0 +1,16 @@
+%html{:xmlns => "http://www.w3.org/1999/xhtml", "xml:lang" => "en", :lang => "en"}
+  %head
+    %title Tag Cloud
+    %link{ :href => "/stylesheet.css", :rel => "stylesheet", :type => "text/css"}
+  %body
+    #content
+      .title
+        %h1 Tag Cloud
+      .cloud-container 
+        = @cloud
+      - if @debug  
+        %pre.debug
+          = @wc_dump
+  
+    
+  
