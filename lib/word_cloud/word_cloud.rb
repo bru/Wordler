@@ -19,7 +19,7 @@ class WordCloud < Cloud
     
     defs = {
       :font => 'fonts/optima.ttf',
-      :fgcolor => "#944B64",
+      :fgcolor => "#CCCCCC",
       :fgcolor2 => "#2D2D2D",
       :bgcolor => "#FFFFFF",
       :transparent => false,
@@ -65,7 +65,7 @@ class WordCloud < Cloud
       if (maxCount - minCount <= 0)
         ratio = 0.5
       else
-        ratio = (weight - minCount) / (maxCount - minCount)
+        ratio = (weight - minCount).to_f / (maxCount - minCount).to_f
       end
       
       # set font size
@@ -78,9 +78,9 @@ class WordCloud < Cloud
         rgb2 = /(..)(..)(..)/.match(@args[:fgcolor2][-6,6])[1,3].map { |s| s.hex }
         
         # calculate color in decimals
-        rgb[0] = rgb[0] + ratio * (rgb2[0] - rgb[0])
-        rgb[1] = rgb[1] + ratio * (rgb2[1] - rgb[1])
-        rgb[2] = rgb[2] + ratio * (rgb2[2] - rgb[2])
+        rgb[0] = rgb[0] + (ratio * (rgb2[0] - rgb[0])).round
+        rgb[1] = rgb[1] + (ratio * (rgb2[1] - rgb[1])).round
+        rgb[2] = rgb[2] + (ratio * (rgb2[2] - rgb[2])).round
         
         vals[:fgcolor] = rgb.map { |i| i.to_s(16) }.join('')
       end
