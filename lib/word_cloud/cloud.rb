@@ -40,20 +40,23 @@ module WordCloud
       spotFound = false
       
       if @points.size == 0
-        sp = Point.new(0,0)
+        #sp = Point.new(0,0)
         spotFound = checkSpot(box)
       else
         #extend list of possible attachpoint with all corners of the Box
+        # make sure the cloud doesn't get too wide
+        if !in_shape? && box.values[:angle] == 0
+          box.rotate
+        end
         pss=createSpotGroup(box)
         spotFound = checkSpotGroup(pss,box)  
-        
         if (!spotFound)
           box.rotate
           pss=createSpotGroup(box)
           spotFound=checkSpotGroup(pss,box)
         end        
       end
-        
+
       if spotFound
         # mark box as in position
         box.inPosition = true
@@ -69,9 +72,14 @@ module WordCloud
         
         @height = @lr.y - @ul.y
         @width  = @lr.x - @ul.x
+      else
+        #puts("XXX WTF????? can't find spot!!!")
       end
-      
       return spotFound
+    end
+    
+    def in_shape?
+      @width < (@height *(0.8))
     end
     
     def createSpotGroup(box)
@@ -83,7 +91,6 @@ module WordCloud
         p4 = Point.new(p.x + 1, p.y + 1)
         ps.push p1, p2, p3, p4
       end
-      
       # sort list to have Point closest to origin first
       ps.sort do |a,b|
         lenA = a.x**2 + (2*a.y)**2
@@ -98,7 +105,7 @@ module WordCloud
       end
       
       # find spot using randomized chunks
-      chunkSize = 20
+      chunkSize = 4
       pss = []
       ps.each_with_index do |k,i| 
         pss[i/chunkSize] ||= []
@@ -134,7 +141,6 @@ module WordCloud
         lx = [@ul.x, box.ul.x].min
         rx = [@lr.x, box.lr.x].max
         if((rx - lx) > @maxWidth)
-          #puts ">>>>> nope (bigger than maxWidth)"
           return false
         end
       end
@@ -144,6 +150,7 @@ module WordCloud
       for tb in @boxes
         if tb.inPosition && box.overlaps(tb)
           ok = false
+          
           break
         end
       end

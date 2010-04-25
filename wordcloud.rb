@@ -12,6 +12,8 @@ require 'sass'
 require 'json'
 require 'pp'
 
+set :logging, :true
+
 
 post '/' do
   format = params.delete("format")
@@ -19,6 +21,12 @@ post '/' do
   
   wc = WordCloud::WordCloud.new
   tags = {}
+  if params[:text]
+    params[:text].split(',').each do |item|
+      tag, weight = item.strip.split(':')
+      tags[tag] = weight.to_i
+    end
+  end
   params[:tag].each do |i, tag|
     tags[tag] = params[:weight][i].to_i if (tag and tag != "")
   end

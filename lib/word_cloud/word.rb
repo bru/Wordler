@@ -1,26 +1,26 @@
 module WordCloud
   class Word < Box
-    attr_accessor :tag
+    attr_accessor :values
 
     def initialize(args,tag,weight)
       defaults = { 
         :name => tag,
         :size => weight,
-        :margin => 3,
+        :margin => 1,#3,
         :angle => 0,
         :fgcolor => "000000",
         :bgcolor => "FFFFFF",
         :font => "font/arial.ttf",
-        :transparent => false
+        :transparent => true
       }
       @values = defaults.merge args
       @box = calculateTextBox(@values[:size], @values[:angle], @values[:font], @values[:name])
-      super(@box[:height]+1+2*@values[:margin], 
-            @box[:width]+2+2*@values[:margin])
+      super(@box[:height], #+1+2*@values[:margin], 
+            @box[:width] # +2+2*@values[:margin]
+            )
     end
     
     def calculateTextBox(font_size, font_angle, font_file, text)
-      # box = imagettfbox(font_size, font_angle, font_file, text)
       image = Magick::Image.new(50, 100)
       draw  = Magick::Draw.new
       draw.pointsize = font_size
@@ -28,11 +28,11 @@ module WordCloud
       #   draw = draw.rotate(-90)
       # end
       box = draw.get_type_metrics(image, text)
+      textheight = (box.ascent * 0.85) - box.descent
       width = (font_angle == 0) ? box.width : box.height
-      height =  (font_angle == 0) ? box.height : box.width
-      
-      
+      height =  (font_angle == 0) ? textheight : box.width      
       image.destroy!
+      
       return { :left => -1, 
           :top => 1,
           :width => width,
@@ -42,13 +42,16 @@ module WordCloud
     end
     
     def rotate
-      @values[:angle] = (@values[:angle] > 0 ? 0 : -90)
+      @values[:angle] = (@values[:angle] == 0 ? -90 : 0)
       @box = calculateTextBox(@values[:size], @values[:angle], @values[:font], @values[:name])
       # FIXME: should be using super's initialize
       @ul = Point.new(0,0)
-      @lr = Point.new(@box[:width]+2+2*@values[:margin], @box[:height]+1+2*@values[:margin])
-      @height = @box[:height]+1+2*@values[:margin]
-      @width = @box[:width]+2+2*@values[:margin]
+      # @lr = Point.new(@box[:width]+2+2*@values[:margin], @box[:height]+1+2*@values[:margin])
+      @lr = Point.new(@box[:width],#+2, 
+                      @box[:height])
+      
+      @height = @box[:height]#+1+2*@values[:margin]
+      @width = @box[:width]#+2+2*@values[:margin]
       @inPosition = false 
       # end of hack
     end
@@ -57,8 +60,8 @@ module WordCloud
     def getImage
       # create the image
       box = calculateTextBox(@values[:size], @values[:angle], @values[:font], @values[:name])
-      h = box[:box].height + @values[:margin]
-      w = box[:box].width  + 2*@values[:margin]
+      h = box[:box].height # + @values[:margin]
+      w = box[:box].width + 2*@values[:margin]
       # create the colors
       fgcolor = "#" + @values[:fgcolor]
       bgcolor = "#" + @values[:bgcolor]
@@ -73,12 +76,9 @@ module WordCloud
       # write text
       text = Magick::Draw.new
       text.pointsize = fontsize
-      # rotate text
-      # if (@values[:angle] != 0)
-      #   text.rotate(-90)
-      # end
+      
       text.fill = fgcolor
-      text.annotate(image, 0, 0, @values[:margin], h - @values[:margin], @values[:name]) {
+      text.annotate(image, 0, 0, @values[:margin], h*0.75, @values[:name]) { # was h - @values[:margin]  - 5
         # more options?
       }
       
@@ -96,12 +96,12 @@ module WordCloud
       return image
     end
     
-    def getHTML
+    def getHTML(prefix = "")
       require 'digest/md5'
       # create image if it does not exist
       # FIXME - just cache the final image
       # hash = Digest::MD5.hexdigest(@values.to_query)
-      cachefile =  @values[:name] + ".gif"
+      cachefile =  prefix + @values[:name] + ".gif"
       
       #FIXME add check for existing files
       im = getImage

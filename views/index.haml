@@ -1,12 +1,15 @@
 %html{:xmlns => "http://www.w3.org/1999/xhtml", "xml:lang" => "en", :lang => "en"}
   %head
     %title Create your Tag Cloud
-    %link{ :href => "/stylesheet.css", :rel => "stylesheet", :type => "text/css"}
+    %link{ :href => "/stylesheets/styles.css", :rel => "stylesheet", :type => "text/css"}
   %body
     #content
       .title
         %h1 Tag Cloud
       %form{ :action => "/", :method => "post"}
+        %p
+          %label{ :for => "text"} Tags - (&lt;tag1&gt;:&lt;weight&gt;,&lt;tag2&gt;:&lt;weight&gt;,&lt;tag3&gt;:&lt;weight&gt;,...)
+          %textarea{ :name => "text"}
         - (1..10).each do |i|
           %p
             %label{ :for => "tag_" + i.to_s} Tag:
@@ -14,8 +17,8 @@
             %input{ :type => "text", :id => "weight_" + i.to_s, :name => "weight[" + i.to_s + "]"}
         %p
           %select{ :name => "format"}
-            %option{:value => "jpg" } Image
-            %option{:value => "html", :selected => "selected" } HTML
+            %option{:value => "jpg", :selected => "selected" } Image
+            %option{:value => "html" } HTML
         %p
           %label Debug
           %input{ :type => "checkbox", :name => "debug"}

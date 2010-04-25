@@ -2,7 +2,7 @@ module WordCloud
   
 class WordCloud < Cloud
   
-  def initialize(args= { :smallest => 1.2, :largest => 3.5, :unit => "em"})
+  def initialize(args= { :smallest => 2.5, :largest => 6, :unit => "em"})
     # convert units to pt
     case args[:unit]
     when "px"
@@ -23,9 +23,11 @@ class WordCloud < Cloud
       :fgcolor2 => "#2D2D2D",
       :bgcolor => "#FFFFFF",
       :transparent => false,
-      :percentup => 40,
-      :maxwidth => 500,
-      :margin => 3,
+      :percentup => 60,
+      :maxwidth => 0,
+      :renderwidth => 560,
+      :renderheight => 900,
+      :margin => 1,
       :number => 200
     }
     
@@ -50,7 +52,7 @@ class WordCloud < Cloud
     
     minCount = tags.map {|k,v| v}.min
     maxCount = tags.map {|k,v| v}.max
-    
+    tags = tags.sort { |a,b| b[1]<=>a[1]}
     tags.each do |tag, weight|
       # get word values by merging cloud default values with tag specific values
       # vals = args.merge tag # FIXME
@@ -58,8 +60,9 @@ class WordCloud < Cloud
       vals = {}
       
       # set angle. rotate box based on chance
+      # XXX instead of making it random, would be better to base it on image ratio/balance
       p = rand(100)
-      vals[:angle] = p < @args[:percentup] ? 90 : 0
+            vals[:angle] = p < @args[:percentup] ? 90 : 0
       
       # calculate ratio of size
       if (maxCount - minCount <= 0)
@@ -85,24 +88,47 @@ class WordCloud < Cloud
         vals[:fgcolor] = rgb.map { |i| i.to_s(16) }.join('')
       end
       word = Word.new(vals, tag, weight)
-      self.add(word, false)
-      
+      self.add(word, false) 
     end
   end
   
-  def getImage(cachedir="")
+  def getImage(w=nil,h=nil)
     self.layout
     self.moveTo(Point.new(0,0))
+    if (w.nil?)
+      w = @args[:renderwidth]
+    end
+    if (h.nil?)
+      h = @args[:renderheight]
+    end
     
+    if (@width > @height)
+      #landscape, let's module the width
+      width, height = (w > @width) ? [w, h] : [@width, (h.to_f*@width.to_f/w.to_f).round]       
+    else
+      #portrait, let's module the height
+      width, height = (h > @height) ? [w, h] : [(w.to_f*@height.to_f/h.to_f).round, @height]
+    end
+            
     list = Magick::ImageList.new
-    list.new_image(@width, @height)
+    list.new_image(width, height)
+    itemcount = 0
     for box in @boxes
       i = box.getImage
       i.page = Magick::Rectangle.new(box.width, box.height, box.ul.x, box.ul.y) 
       list << i
+ 
+      itemcount = itemcount + 1
+      #step = list.flatten_images
+      #step.write('public/words/step_' + itemcount.to_s + '.jpg')
+      
     end
-    # XXX flatten images and return result
-    return list.flatten_images
+    return list.flatten_images.resize_to_fit(w,h)
+  end
+  
+  def getThumbnail(width, height)
+    img = self.getImage
+    img.resize!(width, height)
   end
 
   
