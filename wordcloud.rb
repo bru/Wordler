@@ -14,7 +14,6 @@ require 'pp'
 
 set :logging, :true
 
-
 post '/' do
   format = params.delete("format")
   @debug = params.delete("debug")

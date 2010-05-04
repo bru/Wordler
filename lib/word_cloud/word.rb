@@ -1,6 +1,8 @@
 module WordCloud
   class Word < Box
     attr_accessor :values
+    attr_accessor :tag
+    
 
     def initialize(args,tag,weight)
       defaults = { 
@@ -8,15 +10,15 @@ module WordCloud
         :size => weight,
         :margin => 1,#3,
         :angle => 0,
-        :fgcolor => "000000",
-        :bgcolor => "FFFFFF",
+        :fgcolor => "FFFFFF",
+        :bgcolor => "000000",
         :font => "font/arial.ttf",
         :transparent => true
       }
       @values = defaults.merge args
       @box = calculateTextBox(@values[:size], @values[:angle], @values[:font], @values[:name])
-      super(@box[:height], #+1+2*@values[:margin], 
-            @box[:width] # +2+2*@values[:margin]
+      super(@box[:height],# + 2*@values[:margin], 
+            @box[:width]  # + 2*@values[:margin]
             )
     end
     
@@ -29,7 +31,7 @@ module WordCloud
       # end
       box = draw.get_type_metrics(image, text)
       textheight = (box.ascent * 0.85) - box.descent
-      width = (font_angle == 0) ? box.width : box.height
+      width = (font_angle == 0) ? box.width : textheight #box.height
       height =  (font_angle == 0) ? textheight : box.width      
       image.destroy!
       
@@ -50,8 +52,8 @@ module WordCloud
       @lr = Point.new(@box[:width],#+2, 
                       @box[:height])
       
-      @height = @box[:height]#+1+2*@values[:margin]
-      @width = @box[:width]#+2+2*@values[:margin]
+      @height = @box[:height] # +2*@values[:margin]
+      @width = @box[:width]   # +2*@values[:margin]
       @inPosition = false 
       # end of hack
     end

@@ -21,7 +21,7 @@ class WordCloud < Cloud
       :font => 'fonts/optima.ttf',
       :fgcolor => "#CCCCCC",
       :fgcolor2 => "#2D2D2D",
-      :bgcolor => "#FFFFFF",
+      :bgcolor => "#000000",
       :transparent => false,
       :percentup => 60,
       :maxwidth => 0,
@@ -102,16 +102,18 @@ class WordCloud < Cloud
       h = @args[:renderheight]
     end
     
-    if (@width > @height)
-      #landscape, let's module the width
-      width, height = (w > @width) ? [w, h] : [@width, (h.to_f*@width.to_f/w.to_f).round]       
+    if (@width > (w.to_f / h.to_f)*@height)
+      #landscape, let's module the height
+      width, height = (w > @width) ? [w, h] : [@width, (h.to_f*@width.to_f/w.to_f).round]
     else
-      #portrait, let's module the height
+      #portrait, let's module the width
       width, height = (h > @height) ? [w, h] : [(w.to_f*@height.to_f/h.to_f).round, @height]
     end
             
     list = Magick::ImageList.new
-    list.new_image(width, height)
+    list.new_image(width, height) {
+      self.background_color = "#000000"
+    }
     itemcount = 0
     for box in @boxes
       i = box.getImage
